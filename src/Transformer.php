@@ -52,9 +52,9 @@ class Transformer
         return $this->assocData;
     }
 
-    public function getColumn(string $fieldName) : array{
-        return array_column($this->assocData, $fieldName);
-    }
+//    public function getColumn(string $fieldName) : array{
+//        return array_column($this->assocData, $fieldName);
+//    }
 
     private function map(array $row) : array{
         $mappedRow = [];

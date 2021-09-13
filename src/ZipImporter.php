@@ -8,8 +8,6 @@ use Illuminate\Validation\Validator;
 
 class ZipImporter
 {
-    protected string $zipPath;
-
     protected array $userFunctions = [];
 
     protected Zipper $zipper;
@@ -25,10 +23,6 @@ class ZipImporter
     protected Validator $validator;
 
     protected FileValidator $fileValidator;
-
-    protected array $illegalRowsIndex = [];
-
-    protected array $legalRowsIndex = [];
 
     protected array $errors = [];
 
@@ -52,34 +46,27 @@ class ZipImporter
     {
         $this->validatorFacade = $validatorFacade;
 
-       foreach($this->transformer->getAssocData() as $row){
-           $this->checkData($row);
+       foreach($this->transformer->getAssocData() as $columnIndex => $row){
+           if($this->dataValid($row) && $this->fileValid($row)){
+               continue;
+           }
 
-           $this->checkFile($row);
+           $this->errors[] = [
+               'column' => $columnIndex,
+               'messages' => $this->validator->messages()->merge(
+                   $this->fileValidator->messages()
+               )
+           ];
        }
     }
 
-    protected function checkData($row){
+    protected function dataValid($row) : bool{
         $this->validator = call_user_func([$this->validatorFacade, 'make'], [$row, $this->rule->getLaravelRules()]);
 
         return $this->validator->passes();
-
-//        if($this->validator->fails()){
-//            $this->illegalRowsIndex[] = $rowIndex;
-//
-//            $errorKeys = $this->validator->errors()->keys();
-//
-//            foreach($errorKeys as $errorKey){
-//                $this->errors[] = [
-//                    'rowIndex' => $rowIndex,
-//                    'colIndex' => array_search($errorKey, $this->rule->getFields()),
-//                    'message' => $this->validator->errors()->get($errorKey)
-//                ];
-//            }
-//        }
     }
 
-    protected function checkFile($row){
+    protected function fileValid($row) : bool{
         $rules = $this->rule->getFileRules();
 
         if(!$rules){

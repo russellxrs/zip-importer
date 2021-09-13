@@ -23,11 +23,6 @@ class RuleTest extends TestCase
     }
 
     /** @test */
-    function it_parse_rules_to_file_check_rules(){
-        $this->assertEquals([['field' => 'user', 'folder' => '照片', 'type' => 'image', 'sizeLimit' => '20kb']], Rule::load($this->rules)->getFileRules());
-    }
-
-    /** @test */
     function it_parse_headers(){
         $this->assertEquals(['用户名', '性别'], Rule::load($this->rules)->getHeaders());
     }

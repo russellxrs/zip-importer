@@ -4,6 +4,8 @@
 namespace Russellxrs\ZipImporter;
 
 
+use http\Message;
+use Illuminate\Support\MessageBag;
 use Russellxrs\ZipImporter\Exceptions\RulesFormatException;
 
 class FileValidator
@@ -14,7 +16,7 @@ class FileValidator
 
     protected array $rules;
 
-    protected array $errors = [];
+    protected MessageBag $messages;
 
     public function __construct($data, $rules, $dest)
     {
@@ -27,36 +29,32 @@ class FileValidator
 
     public static function make($data, $rules, $dest): self
     {
-        $instance = new static($data, $rules, $dest);
-
-        $instance->validate();
-
-        return $instance;
+        return new static($data, $rules, $dest);
     }
 
-    public function validate(): bool
+    public function validate() : bool
     {
-        array_map([$this, 'validateRow'], array_keys($this->rules));
+        //todo:: return validated value;
+        return $this->passes();
     }
 
-    public function validateRow  ($field): bool
-    {
-        $row = array_column($this->data, $field);
+    public function passes() : bool{
+        $this->messages = new MessageBag();
 
-        $rule = $this->rules[$field];
+        foreach ($this->rules as $attribute => $rule) {
+            $fileName = $this->data[$attribute];
 
-        [$folder, $types, $sizeLimit] = self::parseRule($rule);
+            [$folder, $types, $sizeLimit] = self::parseRule($rule);
 
-        foreach ($row as $index => $fileName) {
             $matches = glob($this->dest . '/' . $folder . '/' . $fileName . '*');
 
             if (!$matches) {
-                $this->addError($field, '没有找到对应文件');
+                $this->messages->add($attribute, '没有找到对应文件');
                 continue;
             }
 
             if (count($matches) > 1) {
-                $this->addError($field, '存在多个重名文件，请检查');
+                $this->messages->add($attribute, '存在多个重名文件，请检查');
                 continue;
             }
 
@@ -68,45 +66,34 @@ class FileValidator
                 $fileExtension = $pathInfo['extension'];
 
                 if (!in_array($fileExtension, $types)) {
-                    $this->addError($field, '文件格式不正确，必须是' . join('、', $types));
-                    continue;
+                    $this->messages->add($attribute, '文件格式不正确，必须是' . join('、', $types));
                 }
 
                 if (filesize($targetFile) > $sizeLimit) {
-                    $this->addError($field, '文件超出' . self::getReadableSizeLimit($sizeLimit) . ',请压缩后上传');
-                    continue;
+                    $this->messages->add($attribute, '文件超出' . self::getReadableSizeLimit($sizeLimit) . ',请压缩后上传');
                 }
             }
         }
 
-        return count($this->errors) === 0;
+        return $this->messages->isEmpty();
     }
 
-    public function errors(): array
-    {
-        return $this->errors;
+    public function fails() : bool{
+        return ! $this->passes();
     }
 
-    public function passes(): bool
+    public function messages() : MessageBag
     {
-        return count($this->errors) === 0;
-    }
-
-    public function failed(): bool
-    {
-        return !$this->passes();
-    }
-
-
-    public function addError($field, $message): void
-    {
-        if (!isset($this->errors[$field])) {
-            $this->errors[$field] = [];
+        if (! $this->messages) {
+            $this->passes();
         }
 
-        $this->errors[$field][] = $message;
+        return $this->messages;
+    }
 
-        $this->errors[$field] = array_unique($this->errors[$field]);
+    public function errors() : MessageBag
+    {
+        return $this->messages();
     }
 
     public static function parseRule($rule): array

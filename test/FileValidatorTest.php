@@ -4,73 +4,61 @@ namespace Test;
 
 use PHPUnit\Framework\TestCase;
 use Russellxrs\ZipImporter\FileValidator;
+use ZipStream\File;
 
 class FileValidatorTest extends TestCase
 {
     protected string $dest;
 
-    protected string $type;
+    protected array $data;
 
-    protected string $sizeLimit;
-
-    protected array $fileNames;
+    protected array $rules;
 
     protected function setUp(): void
     {
-        $this->dest = __DIR__ . '/stubs/files/';
+        $this->dest = __DIR__ . '/stubs/';
 
-        $this->sizeLimit = '20kb';
+        $this->data = ['field_a' => '101'];
 
-        $this->type = 'image';
+        $this->rules = ['field_a' => 'checkFile<files:image|20kb>'];
+    }
+
+
+    /** @test */
+    function it_passes_if_file_based_on_data_exists(){
+        $fileValidator = FileValidator::make($this->data, $this->rules, $this->dest);
+
+        $this->assertSame(true, $fileValidator->passes());
     }
 
     /** @test */
-    function it_returns_true_if_files_based_on_fileNames_exists(){
-        $this->fileNames = ['101', '102', '103', '104'];
+    function it_fails_if_file_based_on_data_not_exists(){
+        $this->data = ['field_a' => 'wrong_file'];
 
-        $fileValidator = new FileValidator($this->dest, $this->type, $this->sizeLimit, $this->fileNames);
+        $fileValidator = FileValidator::make($this->data, $this->rules, $this->dest);
 
-        $this->assertSame(true, $fileValidator->validate());
+        $this->assertSame(true, $fileValidator->fails());
     }
 
     /** @test */
-    function it_returns_false_if_files_based_on_fileNames_not_exists(){
-        $this->fileNames = ['wrong_file'];
+    function it_fails_if_file_size_is_over_limit(){
+        $this->data = ['field_a' => '301_1025bytes'];
 
-        $fileValidator = new FileValidator($this->dest, $this->type, $this->sizeLimit, $this->fileNames);
+        $this->rules = ['field_a' => 'checkFile<files:txt|1kb>'];
 
-        $this->assertSame(false, $fileValidator->validate());
+        $fileValidator = FileValidator::make($this->data, $this->rules, $this->dest);
 
-        $this->assertEquals([0], $fileValidator->invalidIndexes());
-    }
-    
-    /** @test */
-    function it_returns_false_if_file_size_is_over_limit(){
-        $this->fileNames = ['301_1025bytes'];
-
-        $this->type = 'txt';
-
-        $this->sizeLimit = '1024';
-
-        $fileValidator = new FileValidator($this->dest, $this->type, $this->sizeLimit, $this->fileNames);
-
-        $this->assertSame(false, $fileValidator->validate());
-
-        $this->assertEquals([0], $fileValidator->invalidIndexes());
-
-        var_dump($fileValidator->errors());
+        $this->assertSame(true, $fileValidator->fails());
     }
 
     /** @test */
-    function it_returns_false_if_file_type_is_not_match(){
-        $this->fileNames = ['101'];
+    function it_fails_if_file_type_is_not_match(){
+        $this->data = ['field_a' => '101'];
 
-        $this->type = 'txt';
+        $this->rules = ['field_a' => 'checkFile<files:txt|20kb>'];
 
-        $fileValidator = new FileValidator($this->dest, $this->type, $this->sizeLimit, $this->fileNames);
+        $fileValidator = FileValidator::make($this->data, $this->rules, $this->dest);
 
-        $this->assertSame(false, $fileValidator->validate());
-
-        $this->assertEquals([0], $fileValidator->invalidIndexes());
+        $this->assertSame(true, $fileValidator->fails());
     }
 }

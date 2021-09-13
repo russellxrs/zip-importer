@@ -66,16 +66,16 @@ class TransformerTest extends TestCase
         $this->assertEquals($expected, Transformer::load($array, $fields, $funcArray)->getAssocData());
     }
     
-    /** @test */
-    function it_can_return_specific_column(){
-        $array = [['1a', '1b', '1c'],['2a', '2b', '2c'], ['3a', '3d', '3c']];
-
-        $fields = ['field_a', 'field_b', 'field_c'];
-
-        $column = 3;
-
-        $expected = ['1c', '2c', '3c'];
-
-        $this->assertEquals($expected, Transformer::load($array, $fields)->getColumn(3));
-    }
+//    /** @test */
+//    function it_can_return_specific_column(){
+//        $array = [['1a', '1b', '1c'],['2a', '2b', '2c'], ['3a', '3d', '3c']];
+//
+//        $fields = ['field_a', 'field_b', 'field_c'];
+//
+//        $column = 3;
+//
+//        $expected = ['1c', '2c', '3c'];
+//
+//        $this->assertEquals($expected, Transformer::load($array, $fields)->getColumn(3));
+//    }
 }
