@@ -16,6 +16,8 @@ class FileValidator
 
     protected array $rules;
 
+    protected array $validated = [];
+
     protected MessageBag $messages;
 
     public function __construct($data, $rules, $dest)
@@ -71,11 +73,27 @@ class FileValidator
 
                 if (filesize($targetFile) > $sizeLimit) {
                     $this->messages->add($attribute, '文件超出' . self::getReadableSizeLimit($sizeLimit) . ',请压缩后上传');
+                    continue;
                 }
+
+                $this->addValidated($attribute, $targetFile);
             }
         }
 
         return $this->messages->isEmpty();
+    }
+
+    protected function addValidated($attribute, $targetFile){
+        if(! isset($this->validated[$attribute])){
+            $this->validated[$attribute] = [];
+        }
+
+        $this->validated[$attribute][] = $targetFile;
+    }
+
+    public function validated() : array
+    {
+        return $this->validated;
     }
 
     public function fails() : bool{

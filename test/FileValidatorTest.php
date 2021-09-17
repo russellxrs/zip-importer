@@ -16,7 +16,7 @@ class FileValidatorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->dest = __DIR__ . '/stubs/';
+        $this->dest = __DIR__ . '/stubs';
 
         $this->data = ['field_a' => '101'];
 
@@ -60,5 +60,14 @@ class FileValidatorTest extends TestCase
         $fileValidator = FileValidator::make($this->data, $this->rules, $this->dest);
 
         $this->assertSame(true, $fileValidator->fails());
+    }
+
+    /** @test */
+    function it_returns_all_validated_files_as_an_array(){
+        $fileValidator = FileValidator::make($this->data, $this->rules, $this->dest);
+
+        $fileValidator->validate();
+
+        $this->assertEquals(['field_a' => [$this->dest  . '/files/101.png']], $fileValidator->validated());
     }
 }
