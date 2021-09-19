@@ -29,12 +29,7 @@ class ZipImporter
 
     public function __construct(string $zipPath, array $importFileExt=[])
     {
-        $this->zipper = Zipper::load($zipPath, $importFileExt);
-    }
-
-    public function __destruct()
-    {
-        $this->zipper->delTmpFolder();
+        $this->zipper = Zipper::load($zipPath, $importFileExt)->unzip();
     }
 
     public function read()
@@ -84,7 +79,7 @@ class ZipImporter
             return true;
         }
 
-        $this->fileValidator = FileValidator::make($row, $rules, $this->zipper->sourceDir);
+        $this->fileValidator = FileValidator::make($row, $rules, $this->zipper->destDir());
 
         return $this->fileValidator->passes();
     }
@@ -128,5 +123,10 @@ class ZipImporter
     public function passes(): bool
     {
         return count($this->errors) === 0;
+    }
+
+    public function cleanFolder()
+    {
+        $this->zipper->delTmpFolder();
     }
 }
