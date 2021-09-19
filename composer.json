@@ -1,0 +1,24 @@
+{
+    "name": "russellxrs/zip-importer",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Russellxrs\\ZipImporter\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Russell Xu",
+            "email": "xrsisok@163.com"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },
+    "require": {
+        "phpoffice/phpspreadsheet": "^1.18",
+        "illuminate/validation": "^8.57",
+        "ext-zip": "*",
+        "ext-rar": "*"
+    }
+}
