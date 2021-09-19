@@ -17,8 +17,6 @@
     },
     "require": {
         "phpoffice/phpspreadsheet": "^1.18",
-        "illuminate/validation": "^8.57",
-        "ext-zip": "*",
-        "ext-rar": "*"
+        "illuminate/validation": "^8.57"
     }
 }
