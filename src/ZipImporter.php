@@ -27,14 +27,19 @@ class ZipImporter
 
     protected array $errors = [];
 
-    public function __construct(string $zipPath)
+    public function __construct(string $zipPath, array $importFileExt=[])
     {
-        $this->zipper = Zipper::load($zipPath);
+        $this->zipper = Zipper::load($zipPath, $importFileExt);
+    }
+
+    public function __destruct()
+    {
+        $this->zipper->delTmpFolder();
     }
 
     public function read()
     {
-        $this->excelReader = ExcelReader::load($this->zipper->sourceDir . '/example.xls');
+        $this->excelReader = ExcelReader::load($this->zipper->importFilePath());
 
         $this->transformer = Transformer::load(
             $this->excelReader->read(),
