@@ -1,34 +1,91 @@
-#Zip Importer
+# Zip Importer
 
-##功能
+## 功能
 
-帮助校验zip文件内的excel数据、文件
+校验zip文件内的excel数据和文件
 
-##依赖环境和包
+## 依赖
 
--  php 7.4
-- laravel 6 以上（需要依赖validate facade）
-
-
-##使用方法
-
-$zipImporter = new \Russellxrs\ZipImporter\ZipImporter();
-
-$zipImporter->setPath($zipPath)->setRules($rules)->setUserFunc([])->validate($facade);
-
-$data = $zipImporter->validated();
-
-$imageFile = $zipImporter->getFilePaths('photo');
+- ^php 7.4
+- ^laravel 6
 
 
-- 中文header
-- 需要校验的文件夹 [文件夹的名称、对应的字段、每个文件限制的大小] \ Transformer里拿数据
+## 安装
 
+````
+composer require russellxrs/zip-importer
+````
 
+## 使用
+
+### 示例
+
+````
+$zipImporter = new \Russellxrs\ZipImporter\ZipImporter($zipPath);
+
+$zipImporter->setRules($rules)
+    ->setUserFunc([
+        'id' => function($id){
+            return $id + 1;
+        }
+    ])
+    ->validate($validatorFacade);
+
+$data = $zipImporter->validatedData();
+
+$file = $zipImporter->validatedFiles();
+
+$errors = $zipImporter->errors();
+````
+
+### 规则定义
+
+````
 $rules = [
-    'id_num|身份证' => 'required|max:20|checkFile<照片:image|2M>',
+    'id|编号' => 'required',
+    'id_num|身份证' => 'required|checkFile<images:txt|2Mb>'
 ];
+````
+
+* 键名 : 
+    * 格式：字段名|字段中文名
+
+* 键值 : 
+    * 和laravel的验证规则格式一致
+    * checkFile规则是检查文件的验证规则， 格式为： checkFile<文件夹名称:文件类型|文件大小>
+    * checkFile规则的文件大小可以直接用kb,mb表示，如果是纯数字，则单位为byte。
 
 
+### 方法
+
+#### setUserFunc 
+**用途:** 用于修改excel文件内读取的数据
+**参数:**一个回调函数数组
+**示例:** 
+```` 
+$zipImporter->setUserFunc([
+    'id' => function($id){
+        return $id + 1;
+    }
+])
+````
+
+#### setRules
+用于设置校验规则
+
+#### validate
+校验
+
+#### validatedData
+合法数据
+
+#### validatedFiles
+合法文件
+
+#### assocData
+关联数组
+
+#### errors
+校验错误
 
 
